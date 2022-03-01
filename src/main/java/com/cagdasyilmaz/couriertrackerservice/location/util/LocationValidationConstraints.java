@@ -1,6 +1,6 @@
-package com.cagdasyilmaz.couriertrackerservice.courier.util;
+package com.cagdasyilmaz.couriertrackerservice.location.util;
 
-public class CourierValidationConstraints {
+public class LocationValidationConstraints {
     public static final String COURIER_NAME_BLANK_MESSAGE = "Courier must have a name!";
     public static final String COURIER_EMAIL_NOT_VALID_MESSAGE = "Not a valid email address!";
     public static final String COURIER_LATITUDE_NULL_MESSAGE = "Latitude information is missing!";

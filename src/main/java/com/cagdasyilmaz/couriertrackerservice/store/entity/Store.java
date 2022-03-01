@@ -1,4 +1,4 @@
-package com.cagdasyilmaz.couriertrackerservice.courier.entity;
+package com.cagdasyilmaz.couriertrackerservice.store.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,18 +17,17 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "courier")
-public class Courier {
+@Table(name = "store")
+public class Store {
     @Id
     private UUID id;
 
+    @Column(unique = true)
     private String name;
 
-    @Column(unique = true)
-    private String email;
+    private LocalDateTime dateOpened;
+    private double latitude;
+    private double longitude;
 
-    private LocalDateTime lastLocationUpdateTime;
-    private double lastLatitude;
-    private double lastLongitude;
-    private double totalDistanceTraveled;
+    private LocalDateTime lastEntryTime;
 }

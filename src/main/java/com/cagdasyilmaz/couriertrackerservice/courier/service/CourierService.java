@@ -1,6 +1,5 @@
 package com.cagdasyilmaz.couriertrackerservice.courier.service;
 
-import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.request.CourierLocationUpdate;
 import com.cagdasyilmaz.couriertrackerservice.courier.entity.Courier;
 
 import java.util.List;
@@ -11,5 +10,4 @@ public interface CourierService {
     Courier getCourier(UUID courierId);
     UUID hireCourier(Courier courier);
     void fireCourier(UUID courierId);
-    void updateCourierLocation(UUID courierId, CourierLocationUpdate courierLocationUpdate);
 }

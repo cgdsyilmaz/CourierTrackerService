@@ -2,12 +2,10 @@ package com.cagdasyilmaz.couriertrackerservice.courier.controller;
 
 import com.cagdasyilmaz.couriertrackerservice.courier.controller.mapper.CourierMapper;
 import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.request.CourierHireRequest;
-import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.request.CourierLocationUpdate;
 import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.response.CourierResponse;
 import com.cagdasyilmaz.couriertrackerservice.courier.entity.Courier;
 import com.cagdasyilmaz.couriertrackerservice.courier.service.CourierService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,22 +39,14 @@ public class CourierController {
     }
 
     @PostMapping("/hire")
-    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<String> hireCourier(@RequestBody @Validated CourierHireRequest courierHireRequest) {
         UUID courierId = courierService.hireCourier(CourierMapper.mapCourierHireRequestToCourier(courierHireRequest));
         return ResponseEntity.created(URI.create("/v1/courier/" + courierId)).build();
     }
 
     @DeleteMapping("/{courierId}")
-    @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<String> fireCourier(@PathVariable UUID courierId) {
         courierService.fireCourier(courierId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/location/{courierId}")
-    public ResponseEntity<String> updateCourierLocation(@PathVariable UUID courierId, @RequestBody @Validated CourierLocationUpdate courierLocationUpdate) {
-        courierService.updateCourierLocation(courierId, courierLocationUpdate);
         return ResponseEntity.ok().build();
     }
 }

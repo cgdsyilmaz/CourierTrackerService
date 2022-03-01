@@ -1,8 +1,13 @@
 package com.cagdasyilmaz.couriertrackerservice.courier.service;
 
-import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.request.CourierLocationUpdate;
 import com.cagdasyilmaz.couriertrackerservice.courier.entity.Courier;
+import com.cagdasyilmaz.couriertrackerservice.courier.exception.CourierAlreadyEmployedException;
+import com.cagdasyilmaz.couriertrackerservice.courier.exception.CourierNotFoundException;
 import com.cagdasyilmaz.couriertrackerservice.courier.repository.CourierRepository;
+import com.cagdasyilmaz.couriertrackerservice.location.controller.model.CourierLocationUpdate;
+import com.cagdasyilmaz.couriertrackerservice.location.event.CourierLocationUpdateEvent;
+import com.cagdasyilmaz.couriertrackerservice.util.DistanceCalculator;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +18,9 @@ import java.util.UUID;
 @Service
 public class CourierServiceImpl implements CourierService {
     private final CourierRepository courierRepository;
-    private final StoreService storeService;
 
-    public CourierServiceImpl(CourierRepository courierRepository, StoreService storeService) {
+    public CourierServiceImpl(CourierRepository courierRepository) {
         this.courierRepository = courierRepository;
-        this.storeService = storeService;
     }
 
     @Override
@@ -42,8 +45,8 @@ public class CourierServiceImpl implements CourierService {
 
     private void validateCourier(Courier courier) {
         String email = courier.getEmail();
-        if (courierRepository.findCourierByEmail(email).isPresent())
-            throw new CourierIsAlreadyEmployedException(email);
+        if (courierRepository.findCourierByEmailIgnoreCase(email).isPresent())
+            throw new CourierAlreadyEmployedException(email);
     }
 
     private void setCourierProperties(Courier courier) {
@@ -57,18 +60,28 @@ public class CourierServiceImpl implements CourierService {
         courierRepository.deleteCourierById(courierId).orElseThrow(() -> new CourierNotFoundException(courierId));
     }
 
-    @Override
+    @EventListener
     @Transactional
-    public void updateCourierLocation(UUID courierId, CourierLocationUpdate courierLocationUpdate) {
-        Courier courier = courierRepository.findCourierById(courierId).orElseThrow(() -> new CourierNotFoundException(courierId));
+    public void handleCourierLocationEvent(final CourierLocationUpdateEvent courierLocationUpdateEvent) {
+        UUID courierId = courierLocationUpdateEvent.getCourierId();
+        CourierLocationUpdate courierLocationUpdate = courierLocationUpdateEvent.getCourierLocationUpdate();
 
-        setCourierLocationProperties(courierLocationUpdate, courier);
-        computeTotalDistance(courier);
-        checkAndLogStoreDistances(courier, storeService.getStores());
+        Courier courier = courierRepository.findCourierById(courierId)
+                .orElseThrow(() -> new CourierNotFoundException(courierId));
+
+        updateTotalDistance(courier, courierLocationUpdate);
+        setCourierLocationProperties(courier, courierLocationUpdate);
+
+        courierRepository.save(courier);
     }
 
-    private void setCourierLocationProperties(CourierLocationUpdate courierLocationUpdate, Courier courier) {
-        courier.setLastLocationUpdateDate(LocalDateTime.now());
+    private void updateTotalDistance(Courier courier, CourierLocationUpdate courierLocationUpdate) {
+        courier.setTotalDistanceTraveled(courier.getTotalDistanceTraveled() +
+                DistanceCalculator.calculateDistance(courier.getLastLatitude(), courier.getLastLongitude(), courierLocationUpdate.getLatitude(), courierLocationUpdate.getLongitude()));
+    }
+
+    private void setCourierLocationProperties(Courier courier, CourierLocationUpdate courierLocationUpdate) {
+        courier.setLastLocationUpdateTime(LocalDateTime.now());
         courier.setLastLatitude(courierLocationUpdate.getLatitude());
         courier.setLastLongitude(courierLocationUpdate.getLongitude());
     }

@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface CourierRepository extends JpaRepository<Courier, UUID> {
     Optional<Courier> findCourierById(UUID id);
-    Optional<Courier> findCourierByEmail(String email);
+    Optional<Courier> findCourierByEmailIgnoreCase(String email);
     Optional<Courier> deleteCourierById(UUID id);
 }
