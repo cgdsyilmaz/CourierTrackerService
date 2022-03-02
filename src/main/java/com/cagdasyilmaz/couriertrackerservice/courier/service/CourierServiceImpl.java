@@ -77,7 +77,8 @@ public class CourierServiceImpl implements CourierService {
 
     private void updateTotalDistance(Courier courier, CourierLocationUpdate courierLocationUpdate) {
         courier.setTotalDistanceTraveled(courier.getTotalDistanceTraveled() +
-                DistanceCalculator.calculateDistance(courier.getLastLatitude(), courier.getLastLongitude(), courierLocationUpdate.getLatitude(), courierLocationUpdate.getLongitude()));
+                DistanceCalculator.calculateDistance(courier.getLastLatitude(), courier.getLastLongitude(),
+                        courierLocationUpdate.getLatitude(), courierLocationUpdate.getLongitude()));
     }
 
     private void setCourierLocationProperties(Courier courier, CourierLocationUpdate courierLocationUpdate) {

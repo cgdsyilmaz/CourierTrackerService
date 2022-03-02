@@ -1,5 +1,6 @@
 package com.cagdasyilmaz.couriertrackerservice.store.service;
 
+import com.cagdasyilmaz.couriertrackerservice.location.controller.model.CourierLocationUpdate;
 import com.cagdasyilmaz.couriertrackerservice.location.event.CourierLocationUpdateEvent;
 import com.cagdasyilmaz.couriertrackerservice.store.entity.Store;
 import com.cagdasyilmaz.couriertrackerservice.store.exception.StoreAlreadyFunctionalException;
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.UUID;
 
 @Service
@@ -64,6 +67,23 @@ public class StoreServiceImpl implements StoreService {
     @EventListener
     @Transactional
     public void handleCourierLocationEvent(final CourierLocationUpdateEvent courierLocationUpdateEvent) {
-        
+        CourierLocationUpdate courierLocationUpdate = courierLocationUpdateEvent.getCourierLocationUpdate();
+        List<Store> stores = storeRepository.findAll();
+
+        List<Store> storesEntered = findStoresAndLog(courierLocationUpdate, stores);
+
+        stores.forEach(store -> store.setLastEntryTime(courierLocationUpdate.getUpdateTime()));
+        storeRepository.saveAll(stores);
+    }
+
+    private List<Store> findStoresAndLog(CourierLocationUpdate courierLocationUpdate, List<Store> stores) {
+        return stores.stream()
+                .filter(store -> validStoreToLog(store, courierLocationUpdate))
+                .peek(store -> log.info("Courier entered store {}", store.getName()))
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private boolean validStoreToLog(Store store, CourierLocationUpdate courierLocationUpdate) {
+
     }
 }

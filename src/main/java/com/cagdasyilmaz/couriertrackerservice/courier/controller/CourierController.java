@@ -38,6 +38,11 @@ public class CourierController {
         return ResponseEntity.ok().body(CourierMapper.mapCourierToCourierResponse(courierService.getCourier(courierId)));
     }
 
+    @GetMapping("/total-distance/{courierId}")
+    public ResponseEntity<Double> getTotalDistance(@PathVariable UUID courierId) {
+            return ResponseEntity.ok().body(courierService.getCourier(courierId));
+    }
+
     @PostMapping("/hire")
     public ResponseEntity<String> hireCourier(@RequestBody @Validated CourierHireRequest courierHireRequest) {
         UUID courierId = courierService.hireCourier(CourierMapper.mapCourierHireRequestToCourier(courierHireRequest));
@@ -49,4 +54,5 @@ public class CourierController {
         courierService.fireCourier(courierId);
         return ResponseEntity.ok().build();
     }
+
 }
