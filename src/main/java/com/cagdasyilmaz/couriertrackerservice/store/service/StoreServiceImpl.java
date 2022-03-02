@@ -6,16 +6,18 @@ import com.cagdasyilmaz.couriertrackerservice.store.entity.Store;
 import com.cagdasyilmaz.couriertrackerservice.store.exception.StoreAlreadyFunctionalException;
 import com.cagdasyilmaz.couriertrackerservice.store.exception.StoreNotFoundException;
 import com.cagdasyilmaz.couriertrackerservice.store.repository.StoreRepository;
+import com.cagdasyilmaz.couriertrackerservice.store.util.StoreEntranceConstants;
+import com.cagdasyilmaz.couriertrackerservice.util.DistanceCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -70,20 +72,37 @@ public class StoreServiceImpl implements StoreService {
         CourierLocationUpdate courierLocationUpdate = courierLocationUpdateEvent.getCourierLocationUpdate();
         List<Store> stores = storeRepository.findAll();
 
-        List<Store> storesEntered = findStoresAndLog(courierLocationUpdate, stores);
+        List<Store> storesEntered = findStoresAndLog(courierLocationUpdateEvent.getCourierId(),
+                courierLocationUpdate, stores);
 
-        stores.forEach(store -> store.setLastEntryTime(courierLocationUpdate.getUpdateTime()));
+        storesEntered.forEach(store -> store.setLastEntryTime(courierLocationUpdate.getUpdateTime()));
         storeRepository.saveAll(stores);
     }
 
-    private List<Store> findStoresAndLog(CourierLocationUpdate courierLocationUpdate, List<Store> stores) {
+    private List<Store> findStoresAndLog(UUID courierId, CourierLocationUpdate courierLocationUpdate, List<Store> stores) {
         return stores.stream()
-                .filter(store -> validStoreToLog(store, courierLocationUpdate))
-                .peek(store -> log.info("Courier entered store {}", store.getName()))
-                .collect(java.util.stream.Collectors.toList());
+                .filter(store -> eligibleForEntry(store, courierLocationUpdate))
+                .peek(store -> log.info("Courier with id {} entered store {}", courierId, store.getName()))
+                .collect(Collectors.toList());
     }
 
-    private boolean validStoreToLog(Store store, CourierLocationUpdate courierLocationUpdate) {
+    private boolean eligibleForEntry(Store store, CourierLocationUpdate courierLocationUpdate) {
+        if (hasEnteredRadius(store, courierLocationUpdate))
+            return false;
 
+        return hasSufficientTimePassed(store, courierLocationUpdate) && hasEnteredRadius(store, courierLocationUpdate);
+    }
+
+    private boolean hasEnteredRadius(Store store, CourierLocationUpdate courierLocationUpdate) {
+        double distance = DistanceCalculator.calculateDistance(courierLocationUpdate.getLatitude(),
+                courierLocationUpdate.getLongitude(), store.getLatitude(), store.getLongitude());
+
+        return distance <= StoreEntranceConstants.ENTRY_DISTANCE;
+    }
+
+    private boolean hasSufficientTimePassed(Store store, CourierLocationUpdate courierLocationUpdate) {
+        LocalDateTime lastEntryTime = store.getLastEntryTime();
+        return ChronoUnit.MINUTES.between(lastEntryTime, courierLocationUpdate.getUpdateTime())
+                > StoreEntranceConstants.LOG_TIME_OUT;
     }
 }
