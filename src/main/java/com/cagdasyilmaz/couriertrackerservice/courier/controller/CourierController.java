@@ -5,14 +5,19 @@ import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.request.C
 import com.cagdasyilmaz.couriertrackerservice.courier.controller.model.response.CourierResponse;
 import com.cagdasyilmaz.couriertrackerservice.courier.entity.Courier;
 import com.cagdasyilmaz.couriertrackerservice.courier.service.CourierService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/courier")
@@ -40,7 +45,7 @@ public class CourierController {
 
     @GetMapping("/total-distance/{courierId}")
     public ResponseEntity<Double> getTotalDistance(@PathVariable UUID courierId) {
-            return ResponseEntity.ok().body(courierService.getCourier(courierId));
+            return ResponseEntity.ok().body(courierService.getCourier(courierId).getTotalDistanceTraveled());
     }
 
     @PostMapping("/hire")

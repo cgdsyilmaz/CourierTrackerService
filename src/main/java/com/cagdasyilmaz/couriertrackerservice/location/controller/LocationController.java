@@ -17,7 +17,8 @@ public class LocationController {
     public LocationController(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
     }
-    @PutMapping("/location/{courierId}")
+
+    @PostMapping("/{courierId}")
     public ResponseEntity<String> updateCourierLocation(@PathVariable UUID courierId,
                                                         @RequestBody @Validated CourierLocationUpdate courierLocationUpdate) {
         applicationEventPublisher.publishEvent(

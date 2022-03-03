@@ -76,7 +76,7 @@ public class StoreServiceImpl implements StoreService {
                 courierLocationUpdate, stores);
 
         storesEntered.forEach(store -> store.setLastEntryTime(courierLocationUpdate.getUpdateTime()));
-        storeRepository.saveAll(stores);
+        storeRepository.saveAll(storesEntered);
     }
 
     private List<Store> findStoresAndLog(UUID courierId, CourierLocationUpdate courierLocationUpdate, List<Store> stores) {
@@ -87,9 +87,6 @@ public class StoreServiceImpl implements StoreService {
     }
 
     private boolean eligibleForEntry(Store store, CourierLocationUpdate courierLocationUpdate) {
-        if (hasEnteredRadius(store, courierLocationUpdate))
-            return false;
-
         return hasSufficientTimePassed(store, courierLocationUpdate) && hasEnteredRadius(store, courierLocationUpdate);
     }
 
@@ -102,7 +99,9 @@ public class StoreServiceImpl implements StoreService {
 
     private boolean hasSufficientTimePassed(Store store, CourierLocationUpdate courierLocationUpdate) {
         LocalDateTime lastEntryTime = store.getLastEntryTime();
-        return ChronoUnit.MINUTES.between(lastEntryTime, courierLocationUpdate.getUpdateTime())
+        if (lastEntryTime == null)
+            return true;
+        return ChronoUnit.SECONDS.between(lastEntryTime, courierLocationUpdate.getUpdateTime())
                 > StoreEntranceConstants.LOG_TIME_OUT;
     }
 }

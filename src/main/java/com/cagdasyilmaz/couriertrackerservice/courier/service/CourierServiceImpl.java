@@ -76,14 +76,22 @@ public class CourierServiceImpl implements CourierService {
     }
 
     private void updateTotalDistance(Courier courier, CourierLocationUpdate courierLocationUpdate) {
-        courier.setTotalDistanceTraveled(courier.getTotalDistanceTraveled() +
+        if (hasCourierStarted(courier)) {
+            courier.setTotalDistanceTraveled(courier.getTotalDistanceTraveled() +
                 DistanceCalculator.calculateDistance(courier.getLastLatitude(), courier.getLastLongitude(),
-                        courierLocationUpdate.getLatitude(), courierLocationUpdate.getLongitude()));
+                    courierLocationUpdate.getLatitude(), courierLocationUpdate.getLongitude()));
+        }
+    }
+
+    private boolean hasCourierStarted(Courier courier) {
+        return courier.getLastLocationUpdateTime() != null;
     }
 
     private void setCourierLocationProperties(Courier courier, CourierLocationUpdate courierLocationUpdate) {
-        courier.setLastLocationUpdateTime(LocalDateTime.now());
+        courier.setLastLocationUpdateTime(courierLocationUpdate.getUpdateTime());
         courier.setLastLatitude(courierLocationUpdate.getLatitude());
         courier.setLastLongitude(courierLocationUpdate.getLongitude());
     }
+
+
 }

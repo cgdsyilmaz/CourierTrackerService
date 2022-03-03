@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: migrosDB
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - couriertrackerservice-network
+  bayztracker:
+    image: hanyilmaz/couriertrackerservice
+    container_name: couriertrackerservice_container
+    ports:
+      - '8080:8080'
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - couriertrackerservice-network
+    environment:
+      DATASOURCE_HOST: postgres
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/migrosDB
+
+networks:
+  couriertrackerservice-network:
+volumes:
+  db-data:
